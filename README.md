@@ -12,3 +12,8 @@
 - 프론트엔드: HTML, CSS, JavaScript
 - 데이터 저장 및 로그인: Supabase(후반 차시)
 - 배포: Vercel
+
+## 예정된 파일 구조
+- index.html: 웹 화면의 기본 구조
+- css/style.css: 화면 디자인
+- js/app.js: 버튼과 오답 기록 기능
