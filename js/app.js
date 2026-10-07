@@ -74,3 +74,85 @@ if (list) {
   searchInput.addEventListener("input", showMistakes);
   showMistakes();
 }
+
+const subjectShare = document.getElementById("subject-share");
+
+if (subjectShare) {
+  const mistakes = JSON.parse(localStorage.getItem(storageKey) || "[]");
+  const subjectSelect = document.getElementById("subject-select");
+  const ranking = document.getElementById("concept-ranking");
+  const subjectCounts = new Map();
+
+  mistakes.forEach(function (mistake) {
+    const subject = (mistake.subject || "").trim();
+    if (subject) {
+      subjectCounts.set(subject, (subjectCounts.get(subject) || 0) + 1);
+    }
+  });
+
+  subjectShare.replaceChildren();
+
+  if (subjectCounts.size === 0) {
+    subjectShare.textContent = "등록된 오답이 없습니다.";
+    subjectSelect.disabled = true;
+  } else {
+    const total = Array.from(subjectCounts.values())
+      .reduce(function (sum, count) { return sum + count; }, 0);
+
+    const subjects = Array.from(subjectCounts.entries())
+      .sort(function (a, b) { return b[1] - a[1]; });
+
+    subjects.forEach(function (entry) {
+      const subject = entry[0];
+      const count = entry[1];
+      const percent = Math.round(count / total * 100);
+
+      const row = document.createElement("p");
+      row.textContent = subject + ": " + count + "건 (" + percent + "%)";
+
+      const bar = document.createElement("progress");
+      bar.value = count;
+      bar.max = total;
+
+      row.appendChild(document.createElement("br"));
+      row.appendChild(bar);
+      subjectShare.appendChild(row);
+
+      const option = document.createElement("option");
+      option.value = subject;
+      option.textContent = subject;
+      subjectSelect.appendChild(option);
+    });
+
+    function showRanking() {
+      ranking.replaceChildren();
+      const conceptCounts = new Map();
+
+      mistakes.forEach(function (mistake) {
+        if (mistake.subject === subjectSelect.value) {
+          const concept = (mistake.concept || "").trim();
+          if (concept) {
+            conceptCounts.set(
+              concept,
+              (conceptCounts.get(concept) || 0) + 1
+            );
+          }
+        }
+      });
+
+      const concepts = Array.from(conceptCounts.entries())
+        .sort(function (a, b) { return b[1] - a[1]; })
+        .slice(0, 10);
+
+      concepts.forEach(function (entry, index) {
+        const item = document.createElement("li");
+        item.textContent = entry[0] + " — " + entry[1] + "회";
+        item.className = index < 4 ? "rank-high" : "rank-low";
+        ranking.appendChild(item);
+      });
+    }
+
+    subjectSelect.addEventListener("change", showRanking);
+    showRanking();
+  }
+}
