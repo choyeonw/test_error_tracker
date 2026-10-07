@@ -44,3 +44,12 @@ input, textarea {
 textarea {
   min-height: 100px;
 }
+
+.rank-high {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.rank-low {
+  font-size: 0.9rem;
+}
