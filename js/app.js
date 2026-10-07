@@ -28,8 +28,33 @@ if (list) {
 
   mistakes.forEach(function (mistake) {
     const item = document.createElement("li");
-    item.textContent =
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+
+    summary.textContent =
       mistake.subject + " · " + mistake.concept + " · " + mistake.mistakeType;
-    list.appendChild(item);
+    details.appendChild(summary);
+
+    const fields = [
+      ["단원", mistake.unit],
+      ["난이도", mistake.difficulty],
+      ["틀린 이유", mistake.reason],
+      ["문제집 이름", mistake.book],
+      ["페이지", mistake.page],
+      ["문제 번호", mistake.questionNumber],
+      ["시험명", mistake.exam],
+      ["추가 메모", mistake.memo]
+  ];
+
+  fields.forEach(function (field) {
+    if (field[1]) {
+      const line = document.createElement("p");
+      line.textContent = field[0] + ": " + field[1];
+      details.appendChild(line);
+    }
   });
+
+  item.appendChild(details);
+  list.appendChild(item);
+});
 }
