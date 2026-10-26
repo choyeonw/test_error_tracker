@@ -53,3 +53,77 @@ textarea {
 .rank-low {
   font-size: 0.9rem;
 }
+
+body {
+  background: #f5f7fc;
+  color: #253047;
+}
+
+.home-main {
+  border: 0;
+  padding: 0;
+}
+
+.home-main > p {
+  color: #637083;
+}
+
+.home-actions {
+  display: grid;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.action-card {
+  display: grid;
+  gap: 8px;
+  padding: 26px;
+  border-radius: 16px;
+  color: white;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(30, 45, 90, 0.12);
+}
+
+.action-card strong {
+  font-size: 1.4rem;
+}
+
+.action-card span {
+  font-size: 0.95rem;
+}
+
+.action-card--list {
+  background: #3157c9;
+}
+
+.action-card--register {
+  background: #16866f;
+}
+
+.action-card--analysis {
+  background: #7547b9;
+}
+
+.action-card:hover,
+.action-card:focus-visible {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+#mistake-list {
+  list-style: none;
+  padding: 0;
+}
+
+#mistake-list li {
+  margin: 16px 0;
+  padding: 18px;
+  background: white;
+  border: 1px solid #dce2ed;
+  border-radius: 12px;
+}
+
+#mistake-list summary {
+  cursor: pointer;
+  font-weight: bold;
+}
