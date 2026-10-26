@@ -2,6 +2,12 @@ const storageKey = "mistakes";
 const form = document.querySelector("form");
 
 if (form) {
+    const dateInput = form.querySelector('input[name="mistakeDate"]');
+  if (dateInput) {
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    dateInput.value = today.toISOString().slice(0, 10);
+  }
   form.addEventListener("submit", function (event) {
     event.preventDefault();
 
@@ -10,7 +16,7 @@ if (form) {
 
     mistakes.push(mistake);
     localStorage.setItem(storageKey, JSON.stringify(mistakes));
-    window.location.href = "index.html";
+    window.location.href = "mistakes.html";
   });
 }
 
@@ -41,11 +47,15 @@ if (list) {
     results.forEach(function (mistake) {
       const item = document.createElement("li");
       const details = document.createElement("details");
+      details.open = true;
       const summary = document.createElement("summary");
 
       summary.textContent =
-        mistake.subject + " · " + mistake.concept + " · " + mistake.mistakeType;
-      details.appendChild(summary);
+        (mistake.mistakeDate || "날짜 미기록") + " · " +
+        mistake.subject + " · " +
+        mistake.concept + " · " +
+        mistake.mistakeType;
+        details.appendChild(summary);
 
       const fields = [
         ["단원", mistake.unit],
