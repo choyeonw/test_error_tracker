@@ -12,14 +12,26 @@
     <a href="login.html">로그인</a>
   </header>
 
-  <main>
-    <h2>내 오답 목록</h2>
-    <label for="mistake-search">오답 검색</label>
-    <input id="mistake-search" type="search" placeholder="과목, 개념, 오답 유형 등">
-    <ul id="mistake-list"></ul>
-    <a href="register.html">오답 등록하기</a>
-    <p><a href="analysis.html">취약 개념 분석 보기</a></p>
+  <main class="home-main">
+    <h2>나의 오답 관리</h2>
+    <p>오답을 기록하고, 자주 틀리는 개념을 확인해 보세요.</p>
+
+    <div class="home-actions">
+      <a class="action-card action-card--list" href="mistakes.html">
+        <strong>오답 확인하기</strong>
+        <span>저장한 오답을 날짜와 함께 확인해요</span>
+      </a>
+
+      <a class="action-card action-card--register" href="register.html">
+        <strong>오답 등록하기</strong>
+        <span>새로 틀린 문제를 기록해요</span>
+      </a>
+
+      <a class="action-card action-card--analysis" href="analysis.html">
+        <strong>취약 개념 분석 보기</strong>
+        <span>자주 틀리는 과목과 개념을 살펴봐요</span>
+      </a>
+    </div>
   </main>
-<script src="js/app.js"></script>
 </body>
 </html>
