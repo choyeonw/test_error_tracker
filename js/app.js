@@ -2,24 +2,56 @@ const storageKey = "mistakes";
 const form = document.querySelector("form");
 
 if (form) {
-    const dateInput = form.querySelector('input[name="mistakeDate"]');
+  const dateInput = form.querySelector('input[name="mistakeDate"]');
+
   if (dateInput) {
     const today = new Date();
     today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
     dateInput.value = today.toISOString().slice(0, 10);
   }
-  form.addEventListener("submit", function (event) {
+
+  form.addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const mistake = Object.fromEntries(new FormData(form).entries());
-    const mistakes = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    const { data, error: sessionError } =
+      await window.supabaseClient.auth.getSession();
 
+    if (sessionError || !data.session) {
+      alert("먼저 로그인한 뒤 오답을 등록해 주세요.");
+      return;
+    }
+
+    const mistake = Object.fromEntries(new FormData(form).entries());
+
+    const { error } = await window.supabaseClient
+      .from("mistakes")
+      .insert({
+        subject: mistake.subject,
+        unit: mistake.unit,
+        concept: mistake.concept,
+        mistake_type: mistake.mistakeType,
+        difficulty: mistake.difficulty,
+        reason: mistake.reason,
+        book: mistake.book || null,
+        page: mistake.page || null,
+        question_number: mistake.questionNumber || null,
+        exam: mistake.exam || null,
+        memo: mistake.memo || null,
+        mistake_date: mistake.mistakeDate || null
+      });
+
+    if (error) {
+      alert("오답 저장 실패: " + error.message);
+      return;
+    }
+
+    const mistakes = JSON.parse(localStorage.getItem(storageKey) || "[]");
     mistakes.push(mistake);
     localStorage.setItem(storageKey, JSON.stringify(mistakes));
+
     window.location.href = "mistakes.html";
   });
 }
-
 const list = document.getElementById("mistake-list");
 
 if (list) {
