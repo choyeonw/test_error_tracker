@@ -75,6 +75,13 @@ function showMistakes() {
       }
     });
 
+    if (mistake.source === "supabase") {
+      const editLink = document.createElement("a");
+      editLink.href = "edit.html?id=" + encodeURIComponent(mistake.id);
+      editLink.textContent = "수정하기";
+      details.appendChild(editLink);
+      details.appendChild(document.createTextNode("  "));
+    }
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
     deleteButton.textContent = "이 오답 삭제";
