@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오답 수정</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>오답 수정</h1>
+    <a href="mistakes.html">오답 목록으로 돌아가기</a>
+  </header>
+
+  <main>
+    <p id="edit-message">오답을 불러오는 중입니다...</p>
+
+    <form id="edit-form">
+      <label>오답 날짜 <input type="date" name="mistakeDate"></label>
+      <label>과목 <input type="text" name="subject" required></label>
+      <label>단원 <input type="text" name="unit" required></label>
+      <label>세부 개념 <input type="text" name="concept" required></label>
+      <label>오답 유형 <input type="text" name="mistakeType" required></label>
+      <label>난이도 <input type="text" name="difficulty" required></label>
+      <label>틀린 이유 <textarea name="reason" required></textarea></label>
+      <label>문제집 이름 <input type="text" name="book"></label>
+      <label>페이지 <input type="text" name="page"></label>
+      <label>문제 번호 <input type="text" name="questionNumber"></label>
+      <label>시험명 <input type="text" name="exam"></label>
+      <label>추가 메모 <textarea name="memo"></textarea></label>
+
+      <button id="save-button" type="submit" disabled>수정 내용 저장</button>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/edit.js"></script>
+</body>
+</html>
