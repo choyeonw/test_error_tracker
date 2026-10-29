@@ -14,6 +14,10 @@
 
   <main>
     <form id="auth-form">
+      <label>
+      화면에 표시할 이름 (회원가입할 때만 입력)
+      <input id="display-name" type="text" maxlength="20" placeholder="예: 조연우">
+    </label>
       <label>이메일 <input id="email" type="email" required></label>
       <label>비밀번호 <input id="password" type="password" minlength="8" required></label>
       <div>
@@ -53,7 +57,21 @@
     document.getElementById("signup").addEventListener("click", async function () {
       if (!form.reportValidity()) return;
 
-      const { data, error } = await client.auth.signUp(credentials());
+      const displayNameInput = document.getElementById("display-name");
+      const displayName = displayNameInput.value.trim();
+
+      if (!displayName) {
+        message.textContent = "회원가입할 때는 화면에 표시할 이름을 입력해 주세요.";
+        displayNameInput.focus();
+        return;
+      }
+
+      const { data, error } = await client.auth.signUp({
+        ...credentials(),
+        options: {
+          data: { display_name: displayName }
+        }
+      });
 
       if (error) {
         message.textContent = "회원가입 실패: " + error.message;
