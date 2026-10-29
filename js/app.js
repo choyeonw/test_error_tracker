@@ -44,10 +44,7 @@ if (form) {
       alert("오답 저장 실패: " + error.message);
       return;
     }
-
-    const mistakes = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    mistakes.push(mistake);
-    localStorage.setItem(storageKey, JSON.stringify(mistakes));
+    window.location.href = "mistakes.html";
 
     window.location.href = "mistakes.html";
   });
