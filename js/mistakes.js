@@ -40,7 +40,6 @@ function showMistakes() {
   results.forEach(mistake => {
     const item = document.createElement("li");
     const details = document.createElement("details");
-    details.open = true;
 
     const summary = document.createElement("summary");
     summary.textContent =
