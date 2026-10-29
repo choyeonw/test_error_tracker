@@ -74,13 +74,21 @@ function showMistakes() {
       }
     });
 
+        const actions = document.createElement("details");
+    actions.className = "mistake-actions";
+
+    const actionsSummary = document.createElement("summary");
+    actionsSummary.textContent = "⋯";
+    actionsSummary.setAttribute("aria-label", "수정 및 삭제 메뉴");
+    actions.appendChild(actionsSummary);
+
     if (mistake.source === "supabase") {
       const editLink = document.createElement("a");
       editLink.href = "edit.html?id=" + encodeURIComponent(mistake.id);
       editLink.textContent = "수정하기";
-      details.appendChild(editLink);
-      details.appendChild(document.createTextNode("  "));
+      actions.appendChild(editLink);
     }
+
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
     deleteButton.textContent = "이 오답 삭제";
@@ -98,7 +106,7 @@ function showMistakes() {
           .delete()
           .eq("id", mistake.id)
           .select("id");
-    
+
         if (error || !deleted || deleted.length === 0) {
           alert("삭제하지 못했습니다: " + (error?.message || "오답을 찾을 수 없습니다."));
           deleteButton.disabled = false;
@@ -125,9 +133,9 @@ function showMistakes() {
       await loadMistakes();
     });
 
-    details.appendChild(deleteButton);
-    
+    actions.appendChild(deleteButton);
     item.appendChild(details);
+    item.appendChild(actions);
     list.appendChild(item);
   });
 }
