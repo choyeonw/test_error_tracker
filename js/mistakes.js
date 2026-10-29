@@ -50,11 +50,11 @@ function showMistakes() {
       mistake.mistakeType;
     details.appendChild(summary);
 
-    const place = document.createElement("p");
-    place.textContent = mistake.source === "supabase"
-      ? "Supabase에 저장됨"
-      : "이 브라우저에만 저장된 이전 오답";
-    details.appendChild(place);
+    if (mistake.source === "browser") {
+      const place = document.createElement("p");
+      place.textContent = "이 브라우저에만 저장된 이전 오답";
+      details.appendChild(place);
+    }
 
     const fields = [
       ["단원", mistake.unit],
@@ -75,6 +75,52 @@ function showMistakes() {
       }
     });
 
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.textContent = "이 오답 삭제";
+
+    deleteButton.addEventListener("click", async function () {
+      if (!confirm("이 오답을 삭제할까요? 삭제하면 복구할 수 없습니다.")) {
+        return;
+      }
+
+      deleteButton.disabled = true;
+
+      if (mistake.source === "supabase") {
+        const { data: deleted, error } = await client
+          .from("mistakes")
+          .delete()
+          .eq("id", mistake.id)
+          .select("id");
+    
+        if (error || !deleted || deleted.length === 0) {
+          alert("삭제하지 못했습니다: " + (error?.message || "오답을 찾을 수 없습니다."));
+          deleteButton.disabled = false;
+          return;
+        }
+      }
+
+      try {
+        const browserRecords =
+          JSON.parse(localStorage.getItem("mistakes") || "[]");
+
+        const index = browserRecords.findIndex(
+          record => mistakeKey(record) === mistakeKey(mistake)
+        );
+
+        if (index !== -1) {
+          browserRecords.splice(index, 1);
+          localStorage.setItem("mistakes", JSON.stringify(browserRecords));
+        }
+      } catch (error) {
+        alert("브라우저의 이전 기록을 정리하지 못했습니다.");
+      }
+
+      await loadMistakes();
+    });
+
+    details.appendChild(deleteButton);
+    
     item.appendChild(details);
     list.appendChild(item);
   });
@@ -103,6 +149,7 @@ async function loadMistakes() {
     }
 
     const savedMistakes = rows.map(row => ({
+      id: row.id,
       source: "supabase",
       mistakeDate: row.mistake_date || "",
       subject: row.subject,
@@ -146,6 +193,8 @@ async function loadMistakes() {
     });
 
     allMistakes = [...savedMistakes, ...browserOnly];
+    const migrateControl = document.getElementById("migrate-button");
+    if (migrateControl) migrateControl.hidden = browserOnly.length === 0;
     showMistakes();
   } catch (error) {
     showMessage("오답을 불러오는 중 오류가 났습니다.");
