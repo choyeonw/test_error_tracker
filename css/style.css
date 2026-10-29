@@ -191,3 +191,29 @@ body {
 .mistake-actions > button:hover {
   background: #eef2fc;
 }
+
+.mistake-form label {
+  position: relative;
+}
+
+.mistake-form label::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.mistake-form label:has([required])::after {
+  content: "* 필수";
+  color: #b4233c;
+  background: #ffe8ed;
+}
+
+.mistake-form label:not(:has([required]))::after {
+  content: "선택";
+  color: #526176;
+  background: #e8edf5;
+}
