@@ -109,17 +109,27 @@ async function loadAnalysis() {
         )
         .slice(0, 10);
 
-      concepts.forEach(([concept, counts]) => {
+      concepts.forEach(([concept, counts], index) => {
         const item = document.createElement("li");
+        const correctCount =
+          counts.total - counts.incorrect - counts.notTried;
 
-        item.textContent =
-          concept + " — 또 틀림 " + counts.incorrect + "건" +
+        // 1순위가 가장 크고, 뒤로 갈수록 조금씩 작아집니다.
+        item.style.fontSize = (1.5 - index * 0.055).toFixed(2) + "rem";
+        item.style.fontWeight = "700";
+        item.appendChild(document.createTextNode(concept + " — "));
+
+        // 건수 설명은 순위와 관계없이 읽기 쉬운 크기로 표시합니다.
+        const stats = document.createElement("span");
+        stats.style.fontSize = "0.95rem";
+        stats.style.fontWeight = "400";
+        stats.textContent =
+          "또 틀림 " + counts.incorrect + "건" +
           " · 아직 안 풀어봄 " + counts.notTried + "건" +
+          " · 다시 풀어 맞힘 " + correctCount + "건" +
           " · 전체 " + counts.total + "회";
 
-        item.className =
-          counts.incorrect > 0 ? "rank-high" : "rank-low";
-
+        item.appendChild(stats);
         ranking.appendChild(item);
       });
     }
