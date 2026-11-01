@@ -18,7 +18,7 @@ async function loadAnalysis() {
 
     const { data: mistakes, error } = await client
       .from("mistakes")
-      .select("subject, concept");
+      .select("subject, concept, retry_result");
 
     if (error) {
       subjectShare.textContent =
@@ -82,22 +82,44 @@ async function loadAnalysis() {
         if (mistake.subject === subjectSelect.value) {
           const concept = (mistake.concept || "").trim();
           if (concept) {
-            conceptCounts.set(
-              concept,
-              (conceptCounts.get(concept) || 0) + 1
-            );
+            const counts = conceptCounts.get(concept) || {
+              total: 0,
+              incorrect: 0,
+              notTried: 0
+            };
+
+            counts.total += 1;
+
+            if (mistake.retry_result === "incorrect") {
+              counts.incorrect += 1;
+            } else if (mistake.retry_result !== "correct") {
+              counts.notTried += 1;
+            }
+
+            conceptCounts.set(concept, counts);
           }
-        }
-      });
+      }
+  });
 
       const concepts = Array.from(conceptCounts.entries())
-        .sort((a, b) => b[1] - a[1])
+        .sort((a, b) =>
+          b[1].incorrect - a[1].incorrect ||
+          b[1].notTried - a[1].notTried ||
+          b[1].total - a[1].total
+        )
         .slice(0, 10);
 
-      concepts.forEach(([concept, count], index) => {
+      concepts.forEach(([concept, counts]) => {
         const item = document.createElement("li");
-        item.textContent = concept + " — " + count + "회";
-        item.className = index < 4 ? "rank-high" : "rank-low";
+
+        item.textContent =
+          concept + " — 또 틀림 " + counts.incorrect + "건" +
+          " · 아직 안 풀어봄 " + counts.notTried + "건" +
+          " · 전체 " + counts.total + "회";
+
+        item.className =
+          counts.incorrect > 0 ? "rank-high" : "rank-low";
+
         ranking.appendChild(item);
       });
     }
