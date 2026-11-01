@@ -48,6 +48,14 @@ function showMistakes() {
       mistake.concept + " · " +
       mistake.mistakeType;
     details.appendChild(summary);
+    const retryLabel = {
+      correct: "다시 풀어 맞힘",
+      incorrect: "다시 풀어 또 틀림"
+    }[mistake.retryResult];
+
+    if (retryLabel) {
+      summary.textContent += " · " + retryLabel;
+    }
 
     if (mistake.source === "browser") {
       const place = document.createElement("p");
@@ -81,6 +89,40 @@ function showMistakes() {
     actionsSummary.textContent = "⋯";
     actionsSummary.setAttribute("aria-label", "수정 및 삭제 메뉴");
     actions.appendChild(actionsSummary);
+
+    if (mistake.source === "supabase") {
+    [
+      ["다시 풀어 맞힘", "correct"],
+      ["다시 풀어 또 틀림", "incorrect"]
+    ].forEach(([label, value]) => {
+      const retryButton = document.createElement("button");
+      retryButton.type = "button";
+      retryButton.textContent = label;
+
+      retryButton.addEventListener("click", async () => {
+        retryButton.disabled = true;
+
+        const { data: updated, error } = await client
+          .from("mistakes")
+          .update({ retry_result: value })
+          .eq("id", mistake.id)
+          .select("id");
+
+        if (error || !updated || updated.length === 0) {
+          alert(
+            "다시 풀기 결과를 저장하지 못했습니다: " +
+            (error?.message || "오답을 찾을 수 없습니다.")
+          );
+          retryButton.disabled = false;
+          return;
+        }
+
+        await loadMistakes();
+      });
+
+      actions.appendChild(retryButton);
+    });
+  }
 
     if (mistake.source === "supabase") {
       const editLink = document.createElement("a");
@@ -176,7 +218,8 @@ async function loadMistakes() {
       page: row.page || "",
       questionNumber: row.question_number || "",
       exam: row.exam || "",
-      memo: row.memo || ""
+      memo: row.memo || "",
+      retryResult: row.retry_result || "not_tried"
     }));
 
     let browserMistakes = [];
