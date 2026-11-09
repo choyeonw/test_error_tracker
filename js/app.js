@@ -2,6 +2,21 @@ const storageKey = "mistakes";
 const form = document.querySelector("form");
 
 if (form) {
+  form.style.display = "none";
+
+  async function checkLogin() {
+    const { data, error } = await window.supabaseClient.auth.getSession();
+
+    if (error || !data.session) {
+      alert("오답을 등록하려면 먼저 로그인해 주세요.");
+      window.location.replace("login.html");
+      return;
+    }
+
+    form.style.removeProperty("display");
+  }
+
+  checkLogin();
   const dateInput = form.querySelector('input[name="mistakeDate"]');
 
   if (dateInput) {
