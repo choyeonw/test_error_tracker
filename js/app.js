@@ -17,6 +17,7 @@ if (form) {
   }
 
   checkLogin();
+
   const dateInput = form.querySelector('input[name="mistakeDate"]');
 
   if (dateInput) {
@@ -25,7 +26,7 @@ if (form) {
     dateInput.value = today.toISOString().slice(0, 10);
   }
 
-  // 같은 종류에서 '기존 사진'과 '카메라' 중 마지막으로 고른 것만 사용
+  // 기존 사진 선택과 카메라 촬영 중 마지막으로 고른 사진만 사용
   const questionFileInput = form.querySelector('[name="questionImageFile"]');
   const questionCameraInput = form.querySelector('[name="questionImageCamera"]');
   const answerFileInput = form.querySelector('[name="answerImageFile"]');
@@ -35,6 +36,7 @@ if (form) {
     first.addEventListener("change", function () {
       if (first.files.length > 0) second.value = "";
     });
+
     second.addEventListener("change", function () {
       if (second.files.length > 0) first.value = "";
     });
@@ -67,6 +69,7 @@ if (form) {
         alert("사진 파일만 첨부해 주세요.");
         return;
       }
+
       if (photo.size > 10 * 1024 * 1024) {
         alert("사진은 한 장당 10MB 이하로 첨부해 주세요.");
         return;
@@ -91,9 +94,13 @@ if (form) {
 
         const { error } = await window.supabaseClient.storage
           .from("mistake_images")
-          .upload(path, photo, { contentType: photo.type, upsert: false });
+          .upload(path, photo, {
+            contentType: photo.type,
+            upsert: false
+          });
 
         if (error) throw error;
+
         uploadedPaths.push(path);
         return path;
       }
@@ -125,26 +132,20 @@ if (form) {
 
       window.location.href = "mistakes.html";
     } catch (error) {
-      // 오답 저장에 실패했다면 방금 올린 사진도 정리
+      // 오답 저장에 실패하면 방금 올린 사진도 정리
       if (uploadedPaths.length > 0) {
         await window.supabaseClient.storage
           .from("mistake_images")
           .remove(uploadedPaths);
       }
+
       alert("오답 저장 실패: " + error.message);
     } finally {
       submitButton.disabled = false;
     }
   });
-    if (error) {
-      alert("오답 저장 실패: " + error.message);
-      return;
-    }
-    window.location.href = "mistakes.html";
-
-    window.location.href = "mistakes.html";
-  });
 }
+
 const list = document.getElementById("mistake-list");
 
 if (list) {
@@ -180,7 +181,8 @@ if (list) {
         mistake.subject + " · " +
         mistake.concept + " · " +
         mistake.mistakeType;
-        details.appendChild(summary);
+
+      details.appendChild(summary);
 
       const fields = [
         ["단원", mistake.unit],
@@ -220,6 +222,7 @@ if (subjectShare) {
 
   mistakes.forEach(function (mistake) {
     const subject = (mistake.subject || "").trim();
+
     if (subject) {
       subjectCounts.set(subject, (subjectCounts.get(subject) || 0) + 1);
     }
@@ -232,10 +235,14 @@ if (subjectShare) {
     subjectSelect.disabled = true;
   } else {
     const total = Array.from(subjectCounts.values())
-      .reduce(function (sum, count) { return sum + count; }, 0);
+      .reduce(function (sum, count) {
+        return sum + count;
+      }, 0);
 
     const subjects = Array.from(subjectCounts.entries())
-      .sort(function (a, b) { return b[1] - a[1]; });
+      .sort(function (a, b) {
+        return b[1] - a[1];
+      });
 
     subjects.forEach(function (entry) {
       const subject = entry[0];
@@ -266,6 +273,7 @@ if (subjectShare) {
       mistakes.forEach(function (mistake) {
         if (mistake.subject === subjectSelect.value) {
           const concept = (mistake.concept || "").trim();
+
           if (concept) {
             conceptCounts.set(
               concept,
@@ -276,7 +284,9 @@ if (subjectShare) {
       });
 
       const concepts = Array.from(conceptCounts.entries())
-        .sort(function (a, b) { return b[1] - a[1]; })
+        .sort(function (a, b) {
+          return b[1] - a[1];
+        })
         .slice(0, 10);
 
       concepts.forEach(function (entry, index) {
