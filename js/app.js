@@ -25,6 +25,28 @@ if (form) {
     dateInput.value = today.toISOString().slice(0, 10);
   }
 
+  // 같은 종류에서 '기존 사진'과 '카메라' 중 마지막으로 고른 것만 사용
+  const questionFileInput = form.querySelector('[name="questionImageFile"]');
+  const questionCameraInput = form.querySelector('[name="questionImageCamera"]');
+  const answerFileInput = form.querySelector('[name="answerImageFile"]');
+  const answerCameraInput = form.querySelector('[name="answerImageCamera"]');
+
+  function useOneInput(first, second) {
+    first.addEventListener("change", function () {
+      if (first.files.length > 0) second.value = "";
+    });
+    second.addEventListener("change", function () {
+      if (second.files.length > 0) first.value = "";
+    });
+  }
+
+  useOneInput(questionFileInput, questionCameraInput);
+  useOneInput(answerFileInput, answerCameraInput);
+
+  function selectedPhoto(fileInput, cameraInput) {
+    return fileInput.files[0] || cameraInput.files[0] || null;
+  }
+
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
 
@@ -36,25 +58,84 @@ if (form) {
       return;
     }
 
-    const mistake = Object.fromEntries(new FormData(form).entries());
+    const questionPhoto = selectedPhoto(questionFileInput, questionCameraInput);
+    const answerPhoto = selectedPhoto(answerFileInput, answerCameraInput);
+    const photos = [questionPhoto, answerPhoto].filter(Boolean);
 
-    const { error } = await window.supabaseClient
-      .from("mistakes")
-      .insert({
-        subject: mistake.subject,
-        unit: mistake.unit,
-        concept: mistake.concept,
-        mistake_type: mistake.mistakeType,
-        difficulty: mistake.difficulty,
-        reason: mistake.reason,
-        book: mistake.book || null,
-        page: mistake.page || null,
-        question_number: mistake.questionNumber || null,
-        exam: mistake.exam || null,
-        memo: mistake.memo || null,
-        mistake_date: mistake.mistakeDate || null
-      });
+    for (const photo of photos) {
+      if (!photo.type.startsWith("image/")) {
+        alert("사진 파일만 첨부해 주세요.");
+        return;
+      }
+      if (photo.size > 10 * 1024 * 1024) {
+        alert("사진은 한 장당 10MB 이하로 첨부해 주세요.");
+        return;
+      }
+    }
 
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    const uploadedPaths = [];
+
+    try {
+      async function uploadPhoto(photo) {
+        if (!photo) return null;
+
+        const extension = photo.name.includes(".")
+          ? photo.name.split(".").pop().toLowerCase().replace(/[^a-z0-9]/g, "")
+          : "jpg";
+
+        const path =
+          data.session.user.id + "/" +
+          crypto.randomUUID() + "." + (extension || "jpg");
+
+        const { error } = await window.supabaseClient.storage
+          .from("mistake_images")
+          .upload(path, photo, { contentType: photo.type, upsert: false });
+
+        if (error) throw error;
+        uploadedPaths.push(path);
+        return path;
+      }
+
+      const questionImagePath = await uploadPhoto(questionPhoto);
+      const answerImagePath = await uploadPhoto(answerPhoto);
+      const mistake = Object.fromEntries(new FormData(form).entries());
+
+      const { error } = await window.supabaseClient
+        .from("mistakes")
+        .insert({
+          subject: mistake.subject,
+          unit: mistake.unit,
+          concept: mistake.concept,
+          mistake_type: mistake.mistakeType,
+          difficulty: mistake.difficulty,
+          reason: mistake.reason,
+          book: mistake.book || null,
+          page: mistake.page || null,
+          question_number: mistake.questionNumber || null,
+          exam: mistake.exam || null,
+          memo: mistake.memo || null,
+          mistake_date: mistake.mistakeDate || null,
+          question_image_path: questionImagePath,
+          answer_image_path: answerImagePath
+        });
+
+      if (error) throw error;
+
+      window.location.href = "mistakes.html";
+    } catch (error) {
+      // 오답 저장에 실패했다면 방금 올린 사진도 정리
+      if (uploadedPaths.length > 0) {
+        await window.supabaseClient.storage
+          .from("mistake_images")
+          .remove(uploadedPaths);
+      }
+      alert("오답 저장 실패: " + error.message);
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
     if (error) {
       alert("오답 저장 실패: " + error.message);
       return;
