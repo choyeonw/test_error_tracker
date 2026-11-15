@@ -27,8 +27,25 @@
       <label>시험명 <input type="text" name="exam"></label>
       <label>추가 메모 <textarea name="memo"></textarea></label>
 
-      <label>문제 사진 (선택) <input type="file" name="questionImage" accept="image/jpeg,image/png,image/webp"></label>
-      <label>답안지 사진 (선택) <input type="file" name="answerImage" accept="image/jpeg,image/png,image/webp"></label>
+      <fieldset>
+        <legend>문제 사진 (선택)</legend>
+        <label>기존 사진 선택
+          <input type="file" name="questionImageFile" accept="image/*">
+        </label>
+        <label>카메라로 촬영
+          <input type="file" name="questionImageCamera" accept="image/*" capture="environment">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>답안지 사진 (선택)</legend>
+        <label>기존 사진 선택
+          <input type="file" name="answerImageFile" accept="image/*">
+        </label>
+        <label>카메라로 촬영
+          <input type="file" name="answerImageCamera" accept="image/*" capture="environment">
+        </label>
+      </fieldset>
 
       <button type="submit">오답 등록</button>
     </form>
