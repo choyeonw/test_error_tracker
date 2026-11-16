@@ -29,6 +29,38 @@
       <label>시험명 <input type="text" name="exam"></label>
       <label>추가 메모 <textarea name="memo"></textarea></label>
 
+      <fieldset>
+        <legend>문제 사진 (선택)</legend>
+        <div id="question-preview">현재 사진을 확인하는 중입니다...</div>
+        <label>기존 사진 선택
+          <input type="file" name="questionImageFile" accept="image/*">
+        </label>
+        <label>카메라로 촬영
+          <input type="file" name="questionImageCamera"
+                 accept="image/*" capture="environment">
+        </label>
+        <label>
+          <input type="checkbox" name="removeQuestionImage">
+          현재 문제 사진 삭제
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>답안지 사진 (선택)</legend>
+        <div id="answer-preview">현재 사진을 확인하는 중입니다...</div>
+        <label>기존 사진 선택
+          <input type="file" name="answerImageFile" accept="image/*">
+        </label>
+        <label>카메라로 촬영
+          <input type="file" name="answerImageCamera"
+                 accept="image/*" capture="environment">
+        </label>
+        <label>
+          <input type="checkbox" name="removeAnswerImage">
+          현재 답안지 사진 삭제
+        </label>
+      </fieldset>
+
       <button id="save-button" type="submit" disabled>수정 내용 저장</button>
     </form>
   </main>
