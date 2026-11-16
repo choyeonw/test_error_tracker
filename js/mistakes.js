@@ -81,7 +81,45 @@ function showMistakes() {
         details.appendChild(line);
       }
     });
+    let photosLoaded = false;
 
+    details.addEventListener("toggle", async function () {
+      if (!details.open || photosLoaded) return;
+      photosLoaded = true;
+
+      const photos = [
+        ["문제 사진", mistake.questionImagePath],
+        ["답안지 사진", mistake.answerImagePath]
+      ];
+
+      for (const [label, path] of photos) {
+        if (!path) continue;
+
+        const { data, error } = await client.storage
+          .from("mistake_images")
+          .createSignedUrl(path, 3600);
+
+        const title = document.createElement("p");
+        title.textContent = label;
+        details.appendChild(title);
+
+        if (error) {
+          const message = document.createElement("p");
+          message.textContent = "사진을 불러오지 못했습니다.";
+          details.appendChild(message);
+          continue;
+        }
+
+        const image = document.createElement("img");
+        image.src = data.signedUrl;
+        image.alt = label;
+        image.loading = "lazy";
+        image.style.display = "block";
+        image.style.maxWidth = "100%";
+        image.style.height = "auto";
+        details.appendChild(image);
+      }
+    });
         const actions = document.createElement("details");
     actions.className = "mistake-actions";
 
@@ -219,7 +257,9 @@ async function loadMistakes() {
       questionNumber: row.question_number || "",
       exam: row.exam || "",
       memo: row.memo || "",
-      retryResult: row.retry_result || "not_tried"
+      retryResult: row.retry_result || "not_tried",
+      questionImagePath: row.question_image_path,
+      answerImagePath: row.answer_image_path
     }));
 
     let browserMistakes = [];
