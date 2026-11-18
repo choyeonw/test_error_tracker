@@ -212,6 +212,20 @@ body {
   background: #ffe8ed;
 }
 
+/* 열린 ⋯ 메뉴가 다른 오답 카드보다 앞에 보이도록 */
+#mistake-list > li {
+  position: relative;
+}
+
+#mistake-list > li:has(> .mistake-actions[open]) {
+  z-index: 100;
+}
+
+#mistake-list .mistake-actions[open] {
+  background: #fff;
+  z-index: 101;
+}
+
 .mistake-form label:not(:has([required]))::after {
   content: "선택";
   color: #526176;
