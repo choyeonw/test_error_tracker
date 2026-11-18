@@ -1,10 +1,45 @@
 const client = window.supabaseClient;
 const subjectShare = document.getElementById("subject-share");
+const typeShare = document.getElementById("type-share");
 const subjectSelect = document.getElementById("subject-select");
 const ranking = document.getElementById("concept-ranking");
 
+function countValues(mistakes, fieldName) {
+  const counts = new Map();
+
+  mistakes.forEach(mistake => {
+    const value = String(mistake[fieldName] || "").trim() || "미기록";
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1]);
+}
+
+function showShare(container, entries, total) {
+  container.replaceChildren();
+
+  entries.forEach(([name, count]) => {
+    const percent = Math.round(count / total * 100);
+
+    const row = document.createElement("p");
+    row.textContent =
+      name + ": " + count + "건 (" + percent + "%)";
+
+    const bar = document.createElement("progress");
+    bar.value = count;
+    bar.max = total;
+
+    row.appendChild(document.createElement("br"));
+    row.appendChild(bar);
+    container.appendChild(row);
+  });
+}
+
 async function loadAnalysis() {
   subjectShare.textContent = "분석 결과를 불러오는 중입니다...";
+  typeShare.textContent = "분석 결과를 불러오는 중입니다...";
+  subjectSelect.disabled = true;
 
   try {
     const { data: authData, error: authError } =
@@ -12,62 +47,40 @@ async function loadAnalysis() {
 
     if (authError || !authData.user) {
       subjectShare.textContent = "분석을 보려면 먼저 로그인해 주세요.";
-      subjectSelect.disabled = true;
+      typeShare.textContent = "";
       return;
     }
 
     const { data: mistakes, error } = await client
       .from("mistakes")
-      .select("subject, concept, retry_result");
+      .select("subject, concept, mistake_type, retry_result");
 
     if (error) {
       subjectShare.textContent =
         "분석 결과를 불러오지 못했습니다: " + error.message;
+      typeShare.textContent = "";
       return;
     }
 
     subjectShare.replaceChildren();
+    typeShare.replaceChildren();
     subjectSelect.replaceChildren();
     ranking.replaceChildren();
 
-    if (mistakes.length === 0) {
+    if (!mistakes || mistakes.length === 0) {
       subjectShare.textContent = "등록된 오답이 없습니다.";
-      subjectSelect.disabled = true;
+      typeShare.textContent = "등록된 오답이 없습니다.";
       return;
     }
 
-    const subjectCounts = new Map();
-
-    mistakes.forEach(mistake => {
-      const subject = (mistake.subject || "").trim();
-      if (subject) {
-        subjectCounts.set(
-          subject,
-          (subjectCounts.get(subject) || 0) + 1
-        );
-      }
-    });
-
-    const subjects = Array.from(subjectCounts.entries())
-      .sort((a, b) => b[1] - a[1]);
-
     const total = mistakes.length;
+    const subjects = countValues(mistakes, "subject");
+    const types = countValues(mistakes, "mistake_type");
 
-    subjects.forEach(([subject, count]) => {
-      const percent = Math.round(count / total * 100);
+    showShare(subjectShare, subjects, total);
+    showShare(typeShare, types, total);
 
-      const row = document.createElement("p");
-      row.textContent =
-        subject + ": " + count + "건 (" + percent + "%)";
-
-      const bar = document.createElement("progress");
-      bar.value = count;
-      bar.max = total;
-
-      row.appendChild(document.createElement("br"));
-      row.appendChild(bar);
-      subjectShare.appendChild(row);
-
+    subjects.forEach(([subject]) => {
       const option = document.createElement("option");
       option.value = subject;
       option.textContent = subject;
@@ -79,8 +92,11 @@ async function loadAnalysis() {
       const conceptCounts = new Map();
 
       mistakes.forEach(mistake => {
-        if (mistake.subject === subjectSelect.value) {
-          const concept = (mistake.concept || "").trim();
+        const subject = String(mistake.subject || "").trim() || "미기록";
+
+        if (subject === subjectSelect.value) {
+          const concept = String(mistake.concept || "").trim();
+
           if (concept) {
             const counts = conceptCounts.get(concept) || {
               total: 0,
@@ -98,8 +114,8 @@ async function loadAnalysis() {
 
             conceptCounts.set(concept, counts);
           }
-      }
-  });
+        }
+      });
 
       const concepts = Array.from(conceptCounts.entries())
         .sort((a, b) =>
@@ -119,7 +135,7 @@ async function loadAnalysis() {
         item.style.fontWeight = "700";
         item.appendChild(document.createTextNode(concept + " — "));
 
-        // 건수 설명은 순위와 관계없이 읽기 쉬운 크기로 표시합니다.
+        // 건수 설명은 읽기 쉬운 크기로 표시합니다.
         const stats = document.createElement("span");
         stats.style.fontSize = "0.95rem";
         stats.style.fontWeight = "400";
@@ -139,6 +155,7 @@ async function loadAnalysis() {
     showRanking();
   } catch (error) {
     subjectShare.textContent = "분석 중 오류가 났습니다.";
+    typeShare.textContent = "";
   }
 }
 
