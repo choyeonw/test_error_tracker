@@ -9,11 +9,20 @@ function countValues(mistakes, fieldName) {
 
   mistakes.forEach(mistake => {
     const value = String(mistake[fieldName] || "").trim() || "미기록";
-    counts.set(value, (counts.get(value) || 0) + 1);
+
+    // 오답 유형은 띄어쓰기·가운뎃점 차이를 무시하고 묶습니다.
+    const key = fieldName === "mistake_type"
+      ? conceptKey(value)
+      : value;
+
+    const entry = counts.get(key) || { name: value, count: 0 };
+    entry.count += 1;
+    counts.set(key, entry);
   });
 
-  return Array.from(counts.entries())
-    .sort((a, b) => b[1] - a[1]);
+  return Array.from(counts.values())
+    .sort((a, b) => b.count - a.count)
+    .map(entry => [entry.name, entry.count]);
 }
 
 function showShare(container, entries, total) {
