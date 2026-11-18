@@ -36,6 +36,14 @@ function showShare(container, entries, total) {
   });
 }
 
+// 띄어쓰기와 가운뎃점만 다른 개념을 같은 개념으로 판단합니다.
+function conceptKey(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\s·ㆍ・]/g, "");
+}
+
 async function loadAnalysis() {
   subjectShare.textContent = "분석 결과를 불러오는 중입니다...";
   typeShare.textContent = "분석 결과를 불러오는 중입니다...";
@@ -92,58 +100,63 @@ async function loadAnalysis() {
       const conceptCounts = new Map();
 
       mistakes.forEach(mistake => {
-        const subject = String(mistake.subject || "").trim() || "미기록";
+        const subject =
+          String(mistake.subject || "").trim() || "미기록";
 
-        if (subject === subjectSelect.value) {
-          const concept = String(mistake.concept || "").trim();
+        if (subject !== subjectSelect.value) return;
 
-          if (concept) {
-            const counts = conceptCounts.get(concept) || {
-              total: 0,
-              incorrect: 0,
-              notTried: 0
-            };
+        const originalName = String(mistake.concept || "").trim();
+        const key = conceptKey(originalName);
 
-            counts.total += 1;
+        if (!key) return;
 
-            if (mistake.retry_result === "incorrect") {
-              counts.incorrect += 1;
-            } else if (mistake.retry_result !== "correct") {
-              counts.notTried += 1;
-            }
+        // 같은 개념의 여러 표기를 하나의 건수로 합칩니다.
+        const entry = conceptCounts.get(key) || {
+          name: originalName,
+          total: 0,
+          incorrect: 0,
+          notTried: 0
+        };
 
-            conceptCounts.set(concept, counts);
-          }
+        entry.total += 1;
+
+        if (mistake.retry_result === "incorrect") {
+          entry.incorrect += 1;
+        } else if (mistake.retry_result !== "correct") {
+          entry.notTried += 1;
         }
+
+        conceptCounts.set(key, entry);
       });
 
-      const concepts = Array.from(conceptCounts.entries())
+      const concepts = Array.from(conceptCounts.values())
         .sort((a, b) =>
-          b[1].incorrect - a[1].incorrect ||
-          b[1].notTried - a[1].notTried ||
-          b[1].total - a[1].total
+          b.incorrect - a.incorrect ||
+          b.notTried - a.notTried ||
+          b.total - a.total ||
+          a.name.localeCompare(b.name, "ko")
         )
         .slice(0, 10);
 
-      concepts.forEach(([concept, counts], index) => {
+      concepts.forEach((entry, index) => {
         const item = document.createElement("li");
         const correctCount =
-          counts.total - counts.incorrect - counts.notTried;
+          entry.total - entry.incorrect - entry.notTried;
 
         // 1순위가 가장 크고, 뒤로 갈수록 조금씩 작아집니다.
         item.style.fontSize = (1.5 - index * 0.055).toFixed(2) + "rem";
         item.style.fontWeight = "700";
-        item.appendChild(document.createTextNode(concept + " — "));
+        item.appendChild(document.createTextNode(entry.name + " — "));
 
         // 건수 설명은 읽기 쉬운 크기로 표시합니다.
         const stats = document.createElement("span");
         stats.style.fontSize = "0.95rem";
         stats.style.fontWeight = "400";
         stats.textContent =
-          "또 틀림 " + counts.incorrect + "건" +
-          " · 아직 안 풀어봄 " + counts.notTried + "건" +
+          "또 틀림 " + entry.incorrect + "건" +
+          " · 아직 안 풀어봄 " + entry.notTried + "건" +
           " · 다시 풀어 맞힘 " + correctCount + "건" +
-          " · 전체 " + counts.total + "회";
+          " · 전체 " + entry.total + "회";
 
         item.appendChild(stats);
         ranking.appendChild(item);
