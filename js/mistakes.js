@@ -300,3 +300,14 @@ async function loadMistakes() {
 
 searchInput.addEventListener("input", showMistakes);
 loadMistakes();
+
+document.addEventListener("click", function (event) {
+  const openMenus =
+    document.querySelectorAll("#mistake-list .mistake-actions[open]");
+
+  openMenus.forEach(function (menu) {
+    if (!menu.contains(event.target)) {
+      menu.open = false;
+    }
+  });
+});
