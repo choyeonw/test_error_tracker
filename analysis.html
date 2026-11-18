@@ -5,6 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>오답 유형 및 취약 개념 분석</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .analysis-period {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .analysis-period label {
+      display: grid;
+      gap: 4px;
+    }
+
+    .share-button {
+      display: block;
+      width: 100%;
+      margin: 12px 0;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .share-button progress {
+      display: block;
+      margin-top: 8px;
+      pointer-events: none;
+    }
+
+    #analysis-dialog {
+      width: min(90vw, 560px);
+      max-height: 80vh;
+      border: 1px solid #ccd5e3;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    #analysis-dialog::backdrop {
+      background: rgb(0 0 0 / 45%);
+    }
+
+    #dialog-list {
+      padding-left: 22px;
+    }
+
+    #dialog-list li {
+      margin: 12px 0;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -17,13 +65,32 @@
 
   <main>
     <section>
+      <h2>분석 기간 선택</h2>
+      <div class="analysis-period">
+        <label>
+          시작일
+          <input id="start-date" type="date">
+        </label>
+        <label>
+          종료일
+          <input id="end-date" type="date">
+        </label>
+        <button id="apply-period" type="button">기간 적용</button>
+        <button id="reset-period" type="button">전체 기간 보기</button>
+      </div>
+      <p id="period-status">전체 기간의 오답을 분석합니다.</p>
+    </section>
+
+    <section>
       <h2>과목별 오답 비중</h2>
-      <div id="subject-share">분석 결과가 여기에 표시됩니다.</div>
+      <p>막대를 누르면 해당 오답을 볼 수 있습니다.</p>
+      <div id="subject-share">분석 결과를 불러오는 중입니다...</div>
     </section>
 
     <section>
       <h2>오답 유형별 비중</h2>
-      <div id="type-share">분석 결과가 여기에 표시됩니다.</div>
+      <p>막대를 누르면 해당 오답을 볼 수 있습니다.</p>
+      <div id="type-share">분석 결과를 불러오는 중입니다...</div>
     </section>
 
     <section>
@@ -33,6 +100,12 @@
       <ol id="concept-ranking"></ol>
     </section>
   </main>
+
+  <dialog id="analysis-dialog">
+    <h2 id="dialog-title"></h2>
+    <ul id="dialog-list"></ul>
+    <button id="close-dialog" type="button">닫기</button>
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js"></script>
