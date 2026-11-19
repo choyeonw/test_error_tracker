@@ -28,9 +28,7 @@ function groupMistakes(mistakes, fieldName) {
 
   mistakes.forEach(mistake => {
     const name = String(mistake[fieldName] || "").trim() || "미기록";
-    const key = fieldName === "mistake_type"
-      ? normalizedKey(name)
-      : name;
+    const key = normalizedKey(name);
 
     if (!groups.has(key)) {
       groups.set(key, { name, mistakes: [] });
