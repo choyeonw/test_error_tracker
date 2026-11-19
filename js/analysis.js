@@ -288,4 +288,17 @@ subjectSelect.addEventListener("change", showRanking);
 document.getElementById("close-dialog")
   .addEventListener("click", () => dialog.close());
 
+dialog.addEventListener("click", function (event) {
+  if (event.target !== dialog) return;
+
+  const box = dialog.getBoundingClientRect();
+  const outside =
+    event.clientX < box.left ||
+    event.clientX > box.right ||
+    event.clientY < box.top ||
+    event.clientY > box.bottom;
+
+  if (outside) dialog.close();
+});
+
 loadAnalysis();
