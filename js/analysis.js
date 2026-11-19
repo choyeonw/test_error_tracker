@@ -110,7 +110,7 @@ function showRanking() {
     const subject =
       String(mistake.subject || "").trim() || "미기록";
 
-    if (subject !== subjectSelect.value) return;
+    if (normalizedKey(subject) !== normalizedKey(subjectSelect.value)) return;
 
     const name = String(mistake.concept || "").trim();
     const key = normalizedKey(name);
