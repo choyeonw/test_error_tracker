@@ -9,6 +9,11 @@
   );
 
   if (names.some(name => !inputs[name])) return;
+    form.setAttribute("autocomplete", "off");
+
+  names.forEach(name => {
+    inputs[name].setAttribute("autocomplete", "off");
+  });
 
   const labels = {
     subject: "과목",
