@@ -32,7 +32,6 @@ function showMessage(message) {
 function showMistakes() {
   list.replaceChildren();
 
-  const keyword = searchInput.value.trim().toLowerCase();
     const keyword = searchKey(searchInput.value);
   const results = allMistakes.filter(mistake =>
     fieldNames.some(name =>
