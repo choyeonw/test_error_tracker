@@ -311,3 +311,76 @@ document.addEventListener("click", function (event) {
     }
   });
 });
+
+const deleteAllButton = document.getElementById("delete-all-button");
+
+deleteAllButton.addEventListener("click", async function () {
+  const answer = prompt(
+    "모든 오답과 첨부 사진을 삭제합니다. 복구할 수 없습니다.\n" +
+    "계속하려면 '전체 삭제'라고 입력하세요."
+  );
+
+  if (answer !== "전체 삭제") return;
+
+  deleteAllButton.disabled = true;
+
+  try {
+    const { data: authData, error: authError } =
+      await client.auth.getUser();
+
+    if (authError || !authData.user) {
+      alert("먼저 로그인해 주세요.");
+      return;
+    }
+
+    const { data: deleted, error } = await client
+      .from("mistakes")
+      .delete()
+      .eq("user_id", authData.user.id)
+      .select("id, question_image_path, answer_image_path");
+
+    if (error) {
+      alert("오답 전체 삭제 실패: " + error.message);
+      return;
+    }
+
+    const photoPaths = [
+      ...new Set(
+        (deleted || []).flatMap(row => [
+          row.question_image_path,
+          row.answer_image_path
+        ]).filter(Boolean)
+      )
+    ];
+
+    let photoError = null;
+
+    // Supabase Storage는 한 번에 삭제할 파일 수에 제한이 있습니다.
+    for (let i = 0; i < photoPaths.length; i += 1000) {
+      const { error: removeError } = await client.storage
+        .from("mistake_images")
+        .remove(photoPaths.slice(i, i + 1000));
+
+      if (removeError) {
+        photoError = removeError;
+        break;
+      }
+    }
+
+    localStorage.removeItem("mistakes");
+    await loadMistakes();
+
+    if (photoError) {
+      alert(
+        "오답 기록은 삭제됐지만 일부 사진 파일을 정리하지 못했습니다: " +
+        photoError.message
+      );
+    } else {
+      alert("오답을 모두 삭제했습니다.");
+    }
+  } catch (error) {
+    alert("삭제 중 오류가 났습니다: " + error.message);
+  } finally {
+    deleteAllButton.disabled = false;
+  }
+});
