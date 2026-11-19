@@ -52,6 +52,21 @@
     #dialog-list li {
       margin: 12px 0;
     }
+
+    #analysis-dialog {
+  position: relative;
+}
+
+#close-dialog {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  cursor: pointer;
+}
+
+#dialog-title {
+  padding-right: 90px;
+}
   </style>
 </head>
 <body>
@@ -102,9 +117,9 @@
   </main>
 
   <dialog id="analysis-dialog">
+    <button id="close-dialog" type="button" autofocus>× 닫기</button>
     <h2 id="dialog-title"></h2>
     <ul id="dialog-list"></ul>
-    <button id="close-dialog" type="button">닫기</button>
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
