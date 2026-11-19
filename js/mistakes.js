@@ -3,6 +3,13 @@ const searchInput = document.getElementById("mistake-search");
 const client = window.supabaseClient;
 let allMistakes = [];
 
+function searchKey(value) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\s·ㆍ・]/g, "");
+}
+
 const fieldNames = [
   "mistakeDate", "subject", "unit", "concept", "mistakeType",
   "difficulty", "reason", "book", "page", "questionNumber",
@@ -26,9 +33,10 @@ function showMistakes() {
   list.replaceChildren();
 
   const keyword = searchInput.value.trim().toLowerCase();
+    const keyword = searchKey(searchInput.value);
   const results = allMistakes.filter(mistake =>
     fieldNames.some(name =>
-      String(mistake[name] ?? "").toLowerCase().includes(keyword)
+      searchKey(mistake[name]).includes(keyword)
     )
   );
 
