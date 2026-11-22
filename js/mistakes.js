@@ -1,5 +1,6 @@
 const list = document.getElementById("mistake-list");
-const searchInput = document.getElementById("mistake-search");
+const startDateInput = document.getElementById("mistake-start-date");
+const endDateInput = document.getElementById("mistake-end-date");
 const client = window.supabaseClient;
 let allMistakes = [];
 
@@ -33,14 +34,33 @@ function showMistakes() {
   list.replaceChildren();
 
   const keyword = searchKey(searchInput.value);
-  const results = allMistakes.filter(mistake =>
-    fieldNames.some(name =>
+  const start = startDateInput.value;
+  const end = endDateInput.value;
+
+  if (start && end && start > end) {
+    showMessage("시작일은 종료일보다 늦을 수 없습니다.");
+    return;
+  }
+
+  const results = allMistakes.filter(mistake => {
+    const date = mistake.mistakeDate;
+
+    // 기간을 설정했다면 날짜가 없는 이전 오답은 제외합니다.
+    if ((start || end) && !date) return false;
+    if (start && date < start) return false;
+    if (end && date > end) return false;
+
+    return fieldNames.some(name =>
       searchKey(mistake[name]).includes(keyword)
-    )
-  );
+    );
+  });
 
   if (results.length === 0) {
-    showMessage(keyword ? "검색 결과가 없습니다." : "아직 등록된 오답이 없습니다.");
+    showMessage(
+      keyword || start || end
+        ? "조건에 맞는 오답이 없습니다."
+        : "아직 등록된 오답이 없습니다."
+    );
     return;
   }
 
@@ -338,6 +358,15 @@ async function loadMistakes() {
 }
 
 searchInput.addEventListener("input", showMistakes);
+startDateInput.addEventListener("change", showMistakes);
+endDateInput.addEventListener("change", showMistakes);
+
+document.getElementById("clear-mistake-period")
+  .addEventListener("click", function () {
+    startDateInput.value = "";
+    endDateInput.value = "";
+    showMistakes();
+  });
 loadMistakes();
 
 document.addEventListener("click", function (event) {
