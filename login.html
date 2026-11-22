@@ -3,29 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>로그인</title>
+  <title>로그인 · 회원가입</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .auth-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .auth-tabs button {
+      flex: 1;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    .auth-tabs button.active {
+      background: #1769e0;
+      color: white;
+      border-color: #1769e0;
+      font-weight: 700;
+    }
+
+    #auth-form {
+      display: grid;
+      gap: 16px;
+    }
+
+    #auth-form label {
+      display: grid;
+      gap: 8px;
+    }
+
+    #auth-form input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+    }
+
+    #name-field[hidden] {
+      display: none !important;
+    }
+
+    #auth-submit {
+      padding: 12px 20px;
+      cursor: pointer;
+    }
+
+    #message {
+      min-height: 1.5em;
+    }
+  </style>
 </head>
 <body>
   <header>
-    <h1>로그인 · 회원가입</h1>
+    <h1 id="auth-title">로그인</h1>
     <a href="index.html">메인으로 돌아가기</a>
   </header>
 
   <main>
+    <div class="auth-tabs" aria-label="로그인 또는 회원가입 선택">
+      <button type="button" id="login-tab" class="active"
+              aria-pressed="true">로그인</button>
+      <button type="button" id="signup-tab"
+              aria-pressed="false">회원가입</button>
+    </div>
+
     <form id="auth-form">
+      <label id="name-field" hidden>
+        화면에 표시할 이름
+        <input id="display-name" type="text" maxlength="20"
+               placeholder="예: 조연우">
+      </label>
+
       <label>
-      화면에 표시할 이름 (회원가입할 때만 입력)
-      <input id="display-name" type="text" maxlength="20" placeholder="예: 조연우">
-    </label>
-      <label>이메일 <input id="email" type="email" required></label>
-      <label>비밀번호 <input id="password" type="password" minlength="8" required></label>
-      <div>
-        <button type="submit">로그인</button>
-        <button type="button" id="signup">회원가입</button>
-      </div>
+        이메일
+        <input id="email" type="email" autocomplete="email" required>
+      </label>
+
+      <label>
+        비밀번호
+        <input id="password" type="password"
+               autocomplete="current-password" required>
+      </label>
+
+      <button id="auth-submit" type="submit">로그인</button>
     </form>
-    <p id="message"></p>
+
+    <p id="message" aria-live="polite"></p>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -34,51 +99,110 @@
     const client = window.supabaseClient;
     const form = document.getElementById("auth-form");
     const message = document.getElementById("message");
+    const title = document.getElementById("auth-title");
+    const loginTab = document.getElementById("login-tab");
+    const signupTab = document.getElementById("signup-tab");
+    const nameField = document.getElementById("name-field");
+    const displayNameInput = document.getElementById("display-name");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const submitButton = document.getElementById("auth-submit");
 
-    function credentials() {
-      return {
-        email: document.getElementById("email").value,
-        password: document.getElementById("password").value
-      };
+    let mode = "login";
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      const isSignup = mode === "signup";
+
+      title.textContent = isSignup ? "회원가입" : "로그인";
+      submitButton.textContent = isSignup ? "회원가입하기" : "로그인";
+
+      nameField.hidden = !isSignup;
+      displayNameInput.required = isSignup;
+
+      passwordInput.minLength = isSignup ? 8 : 0;
+      passwordInput.autocomplete =
+        isSignup ? "new-password" : "current-password";
+
+      loginTab.classList.toggle("active", !isSignup);
+      signupTab.classList.toggle("active", isSignup);
+      loginTab.setAttribute("aria-pressed", String(!isSignup));
+      signupTab.setAttribute("aria-pressed", String(isSignup));
+
+      message.textContent = "";
     }
+
+    loginTab.addEventListener("click", () => setMode("login"));
+    signupTab.addEventListener("click", () => setMode("signup"));
 
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
-      const { error } = await client.auth.signInWithPassword(credentials());
 
-      if (error) {
-        message.textContent = "로그인 실패: " + error.message;
-      } else {
-        message.textContent = "로그인 성공!";
-        window.location.href = "index.html";
-      }
-    });
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const isSignup = mode === "signup";
 
-    document.getElementById("signup").addEventListener("click", async function () {
-      if (!form.reportValidity()) return;
+      submitButton.disabled = true;
+      loginTab.disabled = true;
+      signupTab.disabled = true;
+      message.textContent = isSignup
+        ? "회원가입하는 중입니다..."
+        : "로그인하는 중입니다...";
 
-      const displayNameInput = document.getElementById("display-name");
-      const displayName = displayNameInput.value.trim();
+      try {
+        if (isSignup) {
+          const displayName = displayNameInput.value.trim();
 
-      if (!displayName) {
-        message.textContent = "회원가입할 때는 화면에 표시할 이름을 입력해 주세요.";
-        displayNameInput.focus();
-        return;
-      }
+          if (!displayName) {
+            message.textContent = "화면에 표시할 이름을 입력해 주세요.";
+            displayNameInput.focus();
+            return;
+          }
 
-      const { data, error } = await client.auth.signUp({
-        ...credentials(),
-        options: {
-          data: { display_name: displayName }
+          const { data, error } = await client.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { display_name: displayName }
+            }
+          });
+
+          if (error) {
+            message.textContent = "회원가입 실패: " + error.message;
+          } else if (data.session) {
+            window.location.href = "index.html";
+          } else {
+            message.textContent =
+              "가입 확인 이메일을 열어 인증한 뒤 로그인해 주세요.";
+          }
+        } else {
+          const { error } = await client.auth.signInWithPassword({
+            email,
+            password
+          });
+
+          if (error) {
+            if (error.code === "invalid_credentials") {
+              message.textContent =
+                "이메일 또는 비밀번호를 확인해 주세요. " +
+                "계정이 없다면 회원가입을 해 주세요.";
+            } else if (error.code === "email_not_confirmed") {
+              message.textContent =
+                "이메일 인증을 완료한 뒤 로그인해 주세요.";
+            } else {
+              message.textContent = "로그인 실패: " + error.message;
+            }
+          } else {
+            window.location.href = "index.html";
+          }
         }
-      });
-
-      if (error) {
-        message.textContent = "회원가입 실패: " + error.message;
-      } else if (data.session) {
-        message.textContent = "회원가입과 로그인에 성공했습니다.";
-      } else {
-        message.textContent = "가입 확인 이메일을 열어 인증한 뒤 로그인하세요.";
+      } catch (error) {
+        message.textContent =
+          "요청 중 오류가 났습니다. 잠시 후 다시 시도해 주세요.";
+      } finally {
+        submitButton.disabled = false;
+        loginTab.disabled = false;
+        signupTab.disabled = false;
       }
     });
   </script>
