@@ -118,13 +118,25 @@ function showMistakes() {
         }
 
         const image = document.createElement("img");
-        image.src = data.signedUrl;
-        image.alt = label;
-        image.loading = "lazy";
-        image.style.display = "block";
-        image.style.maxWidth = "100%";
-        image.style.height = "auto";
-        details.appendChild(image);
+image.src = data.signedUrl;
+image.alt = label;
+image.loading = "lazy";
+image.className = "mistake-thumbnail";
+
+const photoButton = document.createElement("button");
+photoButton.type = "button";
+photoButton.className = "photo-preview-button";
+photoButton.setAttribute("aria-label", label + " 크게 보기");
+photoButton.appendChild(image);
+
+photoButton.addEventListener("click", function () {
+  const picture = document.getElementById("image-dialog-picture");
+  picture.src = image.src;
+  picture.alt = label;
+  document.getElementById("image-dialog").showModal();
+});
+
+details.appendChild(photoButton);
       }
     });
         const actions = document.createElement("details");
@@ -390,4 +402,22 @@ deleteAllButton.addEventListener("click", async function () {
   } finally {
     deleteAllButton.disabled = false;
   }
+});
+
+const imageDialog = document.getElementById("image-dialog");
+
+document.getElementById("image-dialog-close")
+  .addEventListener("click", () => imageDialog.close());
+
+imageDialog.addEventListener("click", function (event) {
+  if (event.target !== imageDialog) return;
+
+  const box = imageDialog.getBoundingClientRect();
+  const outside =
+    event.clientX < box.left ||
+    event.clientX > box.right ||
+    event.clientY < box.top ||
+    event.clientY > box.bottom;
+
+  if (outside) imageDialog.close();
 });
