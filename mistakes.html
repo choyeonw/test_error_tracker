@@ -1,11 +1,59 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>오답 확인하기</title>
   <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    .photo-preview-button {
+      display: block;
+      width: fit-content;
+      margin: 8px 0 16px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: zoom-in;
+    }
+
+    .mistake-thumbnail {
+      display: block;
+      width: 160px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    #image-dialog {
+      position: relative;
+      max-width: 95vw;
+      max-height: 90vh;
+      padding: 48px 16px 16px;
+      border: 0;
+      border-radius: 12px;
+    }
+
+    #image-dialog::backdrop {
+      background: rgb(0 0 0 / 70%);
+    }
+
+    #image-dialog-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      cursor: pointer;
+    }
+
+    #image-dialog-picture {
+      display: block;
+      max-width: min(90vw, 900px);
+      max-height: 75vh;
+      object-fit: contain;
+    }
+  </style>
 </head>
+
 <body>
   <header>
     <h1>오답 확인하기</h1>
@@ -14,13 +62,27 @@
 
   <main>
     <label for="mistake-search">오답 검색</label>
-    <input id="mistake-search" type="search" placeholder="과목, 개념, 오답 유형 등">
-    <button type="button" id="migrate-button">이전 오답 Supabase로 옮기기</button>
+    <input id="mistake-search" type="search"
+           placeholder="과목, 개념, 오답 유형 등">
+
+    <button type="button" id="migrate-button">
+      이전 오답 Supabase로 옮기기
+    </button>
     <p id="migrate-status"></p>
-    <button type="button" id="delete-all-button">오답 전체 삭제하기</button>
+
+    <button type="button" id="delete-all-button">
+      오답 전체 삭제하기
+    </button>
+
     <a href="register.html">새 오답 등록하기</a>
+
     <ul id="mistake-list"></ul>
   </main>
+
+  <dialog id="image-dialog">
+    <button id="image-dialog-close" type="button">× 닫기</button>
+    <img id="image-dialog-picture" alt="">
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js"></script>
