@@ -1,4 +1,5 @@
 const list = document.getElementById("mistake-list");
+const searchInput = document.getElementById("mistake-search");
 const startDateInput = document.getElementById("mistake-start-date");
 const endDateInput = document.getElementById("mistake-end-date");
 const client = window.supabaseClient;
@@ -367,6 +368,7 @@ document.getElementById("clear-mistake-period")
     endDateInput.value = "";
     showMistakes();
   });
+
 loadMistakes();
 
 document.addEventListener("click", function (event) {
