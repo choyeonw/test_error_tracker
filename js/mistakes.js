@@ -32,7 +32,7 @@ function showMessage(message) {
 function showMistakes() {
   list.replaceChildren();
 
-    const keyword = searchKey(searchInput.value);
+  const keyword = searchKey(searchInput.value);
   const results = allMistakes.filter(mistake =>
     fieldNames.some(name =>
       searchKey(mistake[name]).includes(keyword)
@@ -55,6 +55,7 @@ function showMistakes() {
       mistake.concept + " · " +
       mistake.mistakeType;
     details.appendChild(summary);
+
     const retryLabel = {
       correct: "다시 풀어 맞힘",
       incorrect: "다시 풀어 또 틀림"
@@ -88,6 +89,7 @@ function showMistakes() {
         details.appendChild(line);
       }
     });
+
     let photosLoaded = false;
 
     details.addEventListener("toggle", async function () {
@@ -97,49 +99,58 @@ function showMistakes() {
       const photos = [
         ["문제 사진", mistake.questionImagePath],
         ["답안지 사진", mistake.answerImagePath]
-      ];
+      ].filter(([, path]) => Boolean(path));
+
+      if (photos.length === 0) return;
+
+      const photoRow = document.createElement("div");
+      photoRow.className = "mistake-photo-row";
+      details.appendChild(photoRow);
 
       for (const [label, path] of photos) {
-        if (!path) continue;
+        const photoCard = document.createElement("div");
+        photoCard.className = "mistake-photo-card";
+        photoRow.appendChild(photoCard);
+
+        const title = document.createElement("p");
+        title.textContent = label;
+        photoCard.appendChild(title);
 
         const { data, error } = await client.storage
           .from("mistake_images")
           .createSignedUrl(path, 3600);
 
-        const title = document.createElement("p");
-        title.textContent = label;
-        details.appendChild(title);
-
         if (error) {
           const message = document.createElement("p");
           message.textContent = "사진을 불러오지 못했습니다.";
-          details.appendChild(message);
+          photoCard.appendChild(message);
           continue;
         }
 
         const image = document.createElement("img");
-image.src = data.signedUrl;
-image.alt = label;
-image.loading = "lazy";
-image.className = "mistake-thumbnail";
+        image.src = data.signedUrl;
+        image.alt = label;
+        image.loading = "lazy";
+        image.className = "mistake-thumbnail";
 
-const photoButton = document.createElement("button");
-photoButton.type = "button";
-photoButton.className = "photo-preview-button";
-photoButton.setAttribute("aria-label", label + " 크게 보기");
-photoButton.appendChild(image);
+        const photoButton = document.createElement("button");
+        photoButton.type = "button";
+        photoButton.className = "photo-preview-button";
+        photoButton.setAttribute("aria-label", label + " 크게 보기");
+        photoButton.appendChild(image);
 
-photoButton.addEventListener("click", function () {
-  const picture = document.getElementById("image-dialog-picture");
-  picture.src = image.src;
-  picture.alt = label;
-  document.getElementById("image-dialog").showModal();
-});
+        photoButton.addEventListener("click", function () {
+          const picture = document.getElementById("image-dialog-picture");
+          picture.src = image.src;
+          picture.alt = label;
+          document.getElementById("image-dialog").showModal();
+        });
 
-details.appendChild(photoButton);
+        photoCard.appendChild(photoButton);
       }
     });
-        const actions = document.createElement("details");
+
+    const actions = document.createElement("details");
     actions.className = "mistake-actions";
 
     const actionsSummary = document.createElement("summary");
@@ -148,41 +159,39 @@ details.appendChild(photoButton);
     actions.appendChild(actionsSummary);
 
     if (mistake.source === "supabase") {
-    [
-      ["다시 풀어 맞힘", "correct"],
-      ["다시 풀어 또 틀림", "incorrect"]
-      ["다시 풀기 결과 지우기", "not_tried"]
-    ].forEach(([label, value]) => {
-      const retryButton = document.createElement("button");
-      retryButton.type = "button";
-      retryButton.textContent = label;
+      [
+        ["다시 풀어 맞힘", "correct"],
+        ["다시 풀어 또 틀림", "incorrect"],
+        ["다시 풀기 결과 지우기", "not_tried"]
+      ].forEach(([label, value]) => {
+        const retryButton = document.createElement("button");
+        retryButton.type = "button";
+        retryButton.textContent = label;
 
-      retryButton.addEventListener("click", async () => {
-        retryButton.disabled = true;
+        retryButton.addEventListener("click", async () => {
+          retryButton.disabled = true;
 
-        const { data: updated, error } = await client
-          .from("mistakes")
-          .update({ retry_result: value })
-          .eq("id", mistake.id)
-          .select("id");
+          const { data: updated, error } = await client
+            .from("mistakes")
+            .update({ retry_result: value })
+            .eq("id", mistake.id)
+            .select("id");
 
-        if (error || !updated || updated.length === 0) {
-          alert(
-            "다시 풀기 결과를 저장하지 못했습니다: " +
-            (error?.message || "오답을 찾을 수 없습니다.")
-          );
-          retryButton.disabled = false;
-          return;
-        }
+          if (error || !updated || updated.length === 0) {
+            alert(
+              "다시 풀기 결과를 저장하지 못했습니다: " +
+              (error?.message || "오답을 찾을 수 없습니다.")
+            );
+            retryButton.disabled = false;
+            return;
+          }
 
-        await loadMistakes();
+          await loadMistakes();
+        });
+
+        actions.appendChild(retryButton);
       });
 
-      actions.appendChild(retryButton);
-    });
-  }
-
-    if (mistake.source === "supabase") {
       const editLink = document.createElement("a");
       editLink.href = "edit.html?id=" + encodeURIComponent(mistake.id);
       editLink.textContent = "수정하기";
@@ -208,7 +217,10 @@ details.appendChild(photoButton);
           .select("id");
 
         if (error || !deleted || deleted.length === 0) {
-          alert("삭제하지 못했습니다: " + (error?.message || "오답을 찾을 수 없습니다."));
+          alert(
+            "삭제하지 못했습니다: " +
+            (error?.message || "오답을 찾을 수 없습니다.")
+          );
           deleteButton.disabled = false;
           return;
         }
@@ -283,6 +295,7 @@ async function loadMistakes() {
     }));
 
     let browserMistakes = [];
+
     try {
       browserMistakes =
         JSON.parse(localStorage.getItem("mistakes") || "[]");
@@ -292,12 +305,14 @@ async function loadMistakes() {
 
     // 양쪽에 저장된 같은 오답은 화면에 한 번만 표시합니다.
     const savedCounts = new Map();
+
     savedMistakes.forEach(mistake => {
       const key = mistakeKey(mistake);
       savedCounts.set(key, (savedCounts.get(key) || 0) + 1);
     });
 
     const browserOnly = [];
+
     browserMistakes.forEach(mistake => {
       const key = mistakeKey(mistake);
       const count = savedCounts.get(key) || 0;
@@ -310,8 +325,12 @@ async function loadMistakes() {
     });
 
     allMistakes = [...savedMistakes, ...browserOnly];
+
     const migrateControl = document.getElementById("migrate-button");
-    if (migrateControl) migrateControl.hidden = browserOnly.length === 0;
+    if (migrateControl) {
+      migrateControl.hidden = browserOnly.length === 0;
+    }
+
     showMistakes();
   } catch (error) {
     showMessage("오답을 불러오는 중 오류가 났습니다.");
@@ -375,7 +394,6 @@ deleteAllButton.addEventListener("click", async function () {
 
     let photoError = null;
 
-    // Supabase Storage는 한 번에 삭제할 파일 수에 제한이 있습니다.
     for (let i = 0; i < photoPaths.length; i += 1000) {
       const { error: removeError } = await client.storage
         .from("mistake_images")
