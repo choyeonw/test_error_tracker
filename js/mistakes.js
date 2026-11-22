@@ -151,6 +151,7 @@ details.appendChild(photoButton);
     [
       ["다시 풀어 맞힘", "correct"],
       ["다시 풀어 또 틀림", "incorrect"]
+      ["다시 풀기 결과 지우기", "not_tried"]
     ].forEach(([label, value]) => {
       const retryButton = document.createElement("button");
       retryButton.type = "button";
